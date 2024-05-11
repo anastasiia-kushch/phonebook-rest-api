@@ -17,18 +17,18 @@ export async function listContacts() {
 
 export async function getContactById(contactId) {
   const contacts = await listContacts();
-  const foundContact = contacts.find(contact => contact.id === contactId);
+  const foundContact = contacts.find((contact) => contact.id === contactId);
   if (!foundContact) {
-    HttpError(404, 'Contact not found');
+    return { messaage: 'Contact not found' };
   }
-  return foundContact || null;
+  return foundContact || { messaage: 'Contact not found' };
 }
 
 export async function removeContact(contactId) {
   const contacts = await listContacts();
-  const index = contacts.findIndex(item => item.id === contactId);
+  const index = contacts.findIndex((item) => item.id === contactId);
   if (index === -1) {
-    return null;
+    return { messaage: 'Contact not found' };
   } else {
     const deletedData = contacts.splice(index, 1)[0];
     await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
@@ -57,9 +57,9 @@ export async function addContact(name, email, phone) {
 
 export async function updContact(id, contact) {
   const contacts = await listContacts();
-  const index = contacts.findIndex(c => c.id === id);
+  const index = contacts.findIndex((c) => c.id === id);
   if (index === -1) {
-    return null;
+    return { messaage: 'Contact not found' };
   }
 
   const updContact = { ...contacts[index], ...contact };

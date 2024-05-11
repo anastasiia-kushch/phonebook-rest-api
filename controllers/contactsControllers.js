@@ -13,11 +13,13 @@ export const getAllContacts = async (req, res) => {
 };
 
 export const getOneContact = async (req, res) => {
-  const contact = await getContactById(req.params.id);
-  if (!contact) {
-    res.status(404).send('Contact not found')
+  try {
+    const contact = await getContactById(req.params.id);
+    res.status(200).json(contact);
+  } catch (error) {
+    res.status(404).json({ message: error.message });
   }
-  res.status(200).json(contact);
+
 };
 
 export const deleteContact = async (req, res) => {

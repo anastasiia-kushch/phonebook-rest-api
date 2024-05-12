@@ -85,7 +85,7 @@ export const updateStatusContact = async (req, res, next) => {
 
   try {
     if (!isValidObjectId(id)) {
-      throw HttpError(404, `"message":"Not found"`);
+      return res.status(404).send({ message: 'Not found' });
     }
 
     const result = await Contact.findByIdAndUpdate(
@@ -93,11 +93,11 @@ export const updateStatusContact = async (req, res, next) => {
       { favourite },
       { new: true }
     );
-    if(!result) {
-      throw HttpError(404);
+    if (!result) {
+      return res.status(404).send({ message: 'Not found' });
     }
 
-    res.status(200).json(result)
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

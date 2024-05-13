@@ -1,20 +1,21 @@
 import User from '../db/models/User.js';
-import { registerUserSchema } from '../schemas/usersSchema.js';
+import { loginUserSchema, registerUserSchema } from '../schemas/usersSchema.js';
+import HttpError from '../helpers/HttpError.js';
 import bcrypt from 'bcrypt';
 
 export const register = async (req, res, next) => {
-  const user = {
-    email: req.body.email,
-    password: req.body.password,
-  };
-
-  const { error } = registerUserSchema.validate(user);
-
-  if (typeof error !== 'undefined') {
-    return res.status(400).json({ message: error.message });
-  }
-
   try {
+    const user = {
+      email: req.body.email,
+      password: req.body.password,
+    };
+
+    const { error } = registerUserSchema.validate(user);
+
+    if (error) {
+      throw HttpError(400, error.message);
+    }
+
     const existedUser = await User.findOne({ email: user.email });
 
     if (existedUser !== null) {
@@ -24,7 +25,41 @@ export const register = async (req, res, next) => {
     const passwordHash = await bcrypt.hash(user.password, 10);
 
     await User.create({ email: user.email, password: passwordHash });
-    return res.status(201).json({ user });
+
+    res.status(201).json({ user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const login = async (req, res, next) => {
+  try {
+    const user = {
+      email: req.body.email,
+      password: req.body.password,
+    };
+
+    const { error } = loginUserSchema.validate(user);
+
+    if (error) {
+      throw HttpError(400, error.message);
+    }
+
+    const existedUser = await User.findOne({ email: user.email });
+
+    if (existedUser === null) {
+      throw HttpError(401, 'Email or password is wrong');
+    }
+
+    const isMatch = await bcrypt.compare(user.password, existedUser.password);
+
+    if (!isMatch) {
+      throw HttpError(401, 'Email or password is wrong');
+    }
+
+
+    //здесь нужен ТОКЕН перед объектом юзера
+    res.status(200).send({ user });
   } catch (error) {
     next(error);
   }

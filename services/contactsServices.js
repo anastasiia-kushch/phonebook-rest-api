@@ -22,10 +22,14 @@ export async function removeContact(contactId) {
   const contacts = await listContacts();
   const index = contacts.findIndex((item) => item.id === contactId);
 
+  if (index === -1) {
+    return null;
+  }
+
   const deletedData = contacts.splice(index, 1)[0];
   await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
 
-  return deletedData || null;
+  return deletedData;
 }
 
 export async function addContact(name, email, phone) {

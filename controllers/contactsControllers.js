@@ -1,6 +1,6 @@
 import Contact from '../db/models/Contact.js';
 import { isValidObjectId } from 'mongoose';
-import HttpError from '../helpers/HttpError.js';
+import { createContactSchema, updateContactSchema } from '../schemas/contactsSchemas.js';
 
 export const getAllContacts = async (req, res, next) => {
   try {
@@ -48,6 +48,15 @@ export const createContact = async (req, res, next) => {
     email: req.body.email,
     phone: req.body.phone,
   };
+  const { error } = createContactSchema.validate({
+    name,
+    email,
+    phone,
+  });
+
+  if (typeof error !== 'undefined') {
+    return res.status(400).json({ message: error.message });
+  }
 
   try {
     const result = await Contact.create(contact);
@@ -81,7 +90,7 @@ export const updateContact = async (req, res, next) => {
 
 export const updateStatusContact = async (req, res, next) => {
   const { id } = req.params;
-  const { favourite } = req.body;
+  const { favorite } = req.body;
 
   try {
     if (!isValidObjectId(id)) {
@@ -90,7 +99,7 @@ export const updateStatusContact = async (req, res, next) => {
 
     const result = await Contact.findByIdAndUpdate(
       id,
-      { favourite },
+      { favorite },
       { new: true }
     );
     if (!result) {

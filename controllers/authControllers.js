@@ -30,8 +30,6 @@ export const login = async (req, res, next) => {
 
     if (!isMatch) throw HttpError(401, 'Email or password is wrong');
 
-    console.log(existedUser._id);
-
     const token = jwt.sign({ id: existedUser._id }, process.env.JWT_SECRET, {
       expiresIn: 3600,
     });
@@ -39,6 +37,26 @@ export const login = async (req, res, next) => {
     await User.findByIdAndUpdate(existedUser._id, { token });
 
     res.status(200).json({ token, user: req.body });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { token: null });
+
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const currentUser = async (req, res, next) => {
+  try {
+    const result = User.findById(req.user.id);
+    if (!result) throw HttpError(404, 'User not found');
+ 
   } catch (error) {
     next(error);
   }

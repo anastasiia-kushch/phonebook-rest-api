@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../db/models/User.js';
 import HttpError from '../helpers/HttpError.js';
 
-export const checkAuth = (req, res, next) => {
+export const checkAuth = async (req, res, next) => {
   const authorizationHeader = req.headers.authorization;
 
   if (!authorizationHeader) throw HttpError(401, 'Not authorized');
@@ -13,14 +13,19 @@ export const checkAuth = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, async (err, decode) => {
     if (err) throw HttpError(401, err.message);
+    try {
+      const user = await User.findById(decode.id);
+      if (!user || user.token !== token) throw HttpError(401, 'Not authorized');
 
-    console.log({decode});
+      req.user = {
+        id: decode.id,
+        email: user.email,
+        subscription: user.subscription,
+      };
 
-//     req.user = {
-//         id
-//     }
-
+      next();
+    } catch (error) {
+      next(error);
+    }
   });
-
-  next();
 };

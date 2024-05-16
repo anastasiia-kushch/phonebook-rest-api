@@ -56,7 +56,7 @@ export const currentUser = async (req, res, next) => {
   try {
     const result = User.findById(req.user.id);
     if (!result) throw HttpError(404, 'User not found');
- 
+    res.status(200).send(result)
   } catch (error) {
     next(error);
   }

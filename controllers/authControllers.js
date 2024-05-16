@@ -1,32 +1,18 @@
 import User from '../db/models/User.js';
-import { loginUserSchema, registerUserSchema } from '../schemas/usersSchema.js';
 import HttpError from '../helpers/HttpError.js';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 export const register = async (req, res, next) => {
   try {
-    const user = {
-      email: req.body.email,
-      password: req.body.password,
-    };
+    const existedUser = await User.findOne({ email: req.body.email });
+    if (existedUser) throw HttpError(409, 'Email in use');
 
-    const { error } = registerUserSchema.validate(user);
+    const passwordHash = await bcrypt.hash(req.body.password, 10);
 
-    if (error) {
-      throw HttpError(400, error.message);
-    }
+    await User.create({ email: req.body.email, password: passwordHash });
 
-    const existedUser = await User.findOne({ email: user.email });
-
-    if (existedUser !== null) {
-      return res.status(409).json({ message: 'Email in use' });
-    }
-
-    const passwordHash = await bcrypt.hash(user.password, 10);
-
-    await User.create({ email: user.email, password: passwordHash });
-
-    res.status(201).json({ user });
+    res.status(201).json(req.body);
   } catch (error) {
     next(error);
   }
@@ -34,32 +20,25 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const user = {
-      email: req.body.email,
-      password: req.body.password,
-    };
+    const existedUser = await User.findOne({ email: req.body.email });
+    if (!existedUser) throw HttpError(401, 'Email or password is wrong');
 
-    const { error } = loginUserSchema.validate(user);
+    const isMatch = await bcrypt.compare(
+      req.body.password,
+      existedUser.password
+    );
 
-    if (error) {
-      throw HttpError(400, error.message);
-    }
+    if (!isMatch) throw HttpError(401, 'Email or password is wrong');
 
-    const existedUser = await User.findOne({ email: user.email });
+    console.log(existedUser._id);
 
-    if (existedUser === null) {
-      throw HttpError(401, 'Email or password is wrong');
-    }
+    const token = jwt.sign({ id: existedUser._id }, process.env.JWT_SECRET, {
+      expiresIn: 3600,
+    });
 
-    const isMatch = await bcrypt.compare(user.password, existedUser.password);
+    await User.findByIdAndUpdate(existedUser._id, { token });
 
-    if (!isMatch) {
-      throw HttpError(401, 'Email or password is wrong');
-    }
-
-
-    //здесь нужен ТОКЕН перед объектом юзера
-    res.status(200).send({ user });
+    res.status(200).json({ token, user: req.body });
   } catch (error) {
     next(error);
   }

@@ -15,6 +15,7 @@ export const checkAuth = async (req, res, next) => {
     if (err) throw HttpError(401, err.message);
     try {
       const user = await User.findById(decode.id);
+  
       if (!user || user.token !== token) throw HttpError(401, 'Not authorized');
 
       req.user = {

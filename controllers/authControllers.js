@@ -54,9 +54,9 @@ export const logout = async (req, res, next) => {
 
 export const currentUser = async (req, res, next) => {
   try {
-    const result = User.findById(req.user.id);
+    const result = await User.findById(req.user.id);
     if (!result) throw HttpError(404, 'User not found');
-    res.status(200).send(result)
+    res.status(200).send(req.user)
   } catch (error) {
     next(error);
   }

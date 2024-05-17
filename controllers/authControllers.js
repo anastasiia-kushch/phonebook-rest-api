@@ -56,7 +56,31 @@ export const currentUser = async (req, res, next) => {
   try {
     const result = await User.findById(req.user.id);
     if (!result) throw HttpError(404, 'User not found');
-    res.status(200).send(req.user)
+    res.status(200).send(req.user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateSubscription = async (req, res, next) => {
+  try {
+    const { subscription } = req.query;
+    const { id } = req.user;
+
+    const validSubscriptions = ['starter', 'pro', 'business'];
+    if (!validSubscriptions.includes(subscription))
+      throw HttpError(400, 'Invalid subscription type');
+
+    console.log({ id, subscription });
+    const result = await User.findByIdAndUpdate(
+      id,
+      { subscription },
+      {
+        new: true,
+      }
+    );
+    if(!result) throw HttpError(404, 'User not found')
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

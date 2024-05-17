@@ -3,7 +3,12 @@ import HttpError from '../helpers/HttpError.js';
 
 export const getAllContacts = async (req, res, next) => {
   try {
-    const contacts = await Contact.find({ owner: req.user.id });
+    const { page = 1, limit = 20, favorite } = req.query;
+    const skip = (page - 1) * limit;
+    const query = favorite
+      ? { favorite: favorite === 'true', owner: req.user.id }
+      : { owner: req.user.id };
+    const contacts = await Contact.find(query).skip(skip).limit(Number(limit));
     res.status(200).json(contacts);
   } catch (error) {
     next(error);

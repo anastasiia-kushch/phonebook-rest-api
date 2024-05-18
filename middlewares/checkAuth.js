@@ -11,11 +11,11 @@ export const checkAuth = async (req, res, next) => {
 
   if (bearer !== 'Bearer') throw HttpError(401, 'Not authorized');
 
-  jwt.verify(token, process.env.JWT_SECRET, async (err, decode) => {
+  const userVerify = async (err, decode) => {
     if (err) throw HttpError(401, err.message);
     try {
       const user = await User.findById(decode.id);
-  
+
       if (!user || user.token !== token) throw HttpError(401, 'Not authorized');
 
       req.user = {
@@ -28,5 +28,7 @@ export const checkAuth = async (req, res, next) => {
     } catch (error) {
       next(error);
     }
-  });
+  };
+
+  jwt.verify(token, process.env.JWT_SECRET, userVerify);
 };

@@ -54,9 +54,7 @@ export const logout = async (req, res, next) => {
 
 export const currentUser = async (req, res, next) => {
   try {
-    const result = await User.findById(req.user.id);
-    if (!result) throw HttpError(404, 'User not found');
-    res.status(200).send(req.user);
+    res.status(200).json(req.user);
   } catch (error) {
     next(error);
   }
@@ -64,14 +62,9 @@ export const currentUser = async (req, res, next) => {
 
 export const updateSubscription = async (req, res, next) => {
   try {
-    const { subscription } = req.query;
+    const { subscription } = req.body;
     const { id } = req.user;
 
-    const validSubscriptions = ['starter', 'pro', 'business'];
-    if (!validSubscriptions.includes(subscription))
-      throw HttpError(400, 'Invalid subscription type');
-
-    console.log({ id, subscription });
     const result = await User.findByIdAndUpdate(
       id,
       { subscription },

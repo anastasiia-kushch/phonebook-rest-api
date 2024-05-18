@@ -19,7 +19,7 @@ export const getOneContact = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-    const contact = await Contact.findOne({_id: id, owner: userId});
+    const contact = await Contact.findOne({ _id: id, owner: userId });
 
     if (!contact) throw HttpError(404, 'Contact not found');
 
@@ -33,7 +33,7 @@ export const deleteContact = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-    const contact = await Contact.findOneAndDelete({_id: id, owner: userId});
+    const contact = await Contact.findOneAndDelete({ _id: id, owner: userId });
 
     if (!contact) throw HttpError(404, 'Contact not found or already deleted');
 
@@ -55,12 +55,13 @@ export const createContact = async (req, res, next) => {
 
 export const updateContact = async (req, res, next) => {
   try {
-    if (req.body.length === 0)
-      throw HttpError(400, 'Body must have at least one field');
-
     const { id } = req.params;
     const userId = req.user.id;
-    const result = await Contact.findOneAndUpdate({_id: id, owner: userId}, req.body, { new: true });
+    const result = await Contact.findOneAndUpdate(
+      { _id: id, owner: userId },
+      req.body,
+      { new: true }
+    );
     if (!result) throw HttpError(404, 'Contact not found');
 
     if (result.owner.toString() !== req.user.id) throw HttpError(403);
@@ -73,15 +74,12 @@ export const updateContact = async (req, res, next) => {
 
 export const updateStatusContact = async (req, res, next) => {
   try {
-    if (req.body.length === 0)
-      throw HttpError(400, 'Body must have at least one field');
-
     const { id } = req.params;
     const { favorite } = req.body;
     const userId = req.user.id;
 
     const result = await Contact.findOneAndUpdate(
-      {_id: id, owner: userId},
+      { _id: id, owner: userId },
       { favorite },
       { new: true }
     );

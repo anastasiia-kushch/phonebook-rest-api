@@ -31,7 +31,7 @@ export const login = async (req, res, next) => {
     if (!isMatch) throw HttpError(401, 'Email or password is wrong');
 
     const token = jwt.sign({ id: existedUser._id }, process.env.JWT_SECRET, {
-      expiresIn: 3600,
+      expiresIn: '24h',
     });
 
     await User.findByIdAndUpdate(existedUser._id, { token });

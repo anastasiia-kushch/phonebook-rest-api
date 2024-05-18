@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, path.resolve('public', 'avatars'));
+    cb(null, path.resolve('tmp'));
   },
   filename(req, file, cb) {
     const extname = path.extname(file.originalname);

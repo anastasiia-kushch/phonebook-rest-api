@@ -14,4 +14,5 @@ authRouter.get('/current', checkAuth, currentUser)
 authRouter.patch('/', checkAuth, updateSubscription)
 authRouter.patch('/avatars', checkAuth, uploadMiddleware.single("avatar"), uploadAvatar)
 
+
 export default authRouter;

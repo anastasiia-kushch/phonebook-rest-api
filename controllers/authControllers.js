@@ -37,8 +37,8 @@ export const login = async (req, res, next) => {
       expiresIn: 3600,
     });
 
-    await User.findByIdAndUpdate(existedUser._id, { token });
-
+    const result = await User.findByIdAndUpdate(existedUser._id, { token });
+    console.log(result);
     res.status(200).json({ token, user: req.body });
   } catch (error) {
     next(error);

@@ -2,6 +2,7 @@ import User from '../db/models/User.js';
 import HttpError from '../helpers/HttpError.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import gravatar from 'gravatar';
 
 export const register = async (req, res, next) => {
   try {
@@ -10,7 +11,9 @@ export const register = async (req, res, next) => {
 
     const passwordHash = await bcrypt.hash(req.body.password, 10);
 
-    await User.create({ email: req.body.email, password: passwordHash });
+    const avatar = gravatar.url(req.body.email)
+
+    await User.create({ email: req.body.email, password: passwordHash, avatarURL: avatar });
 
     res.status(201).json(req.body);
   } catch (error) {
@@ -72,7 +75,7 @@ export const updateSubscription = async (req, res, next) => {
         new: true,
       }
     );
-    if(!result) throw HttpError(404, 'User not found')
+    if (!result) throw HttpError(404, 'User not found');
     res.status(200).json(result);
   } catch (error) {
     next(error);

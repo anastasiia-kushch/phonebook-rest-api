@@ -15,7 +15,7 @@ export const uploadAvatar = async (req, res, next) => {
       { new: true }
     );
 
-    res.status(200).json({avatarURL: result.avatarURL});
+    res.status(200).json({ avatarURL: result.avatarURL });
   } catch (error) {
     next(error);
   }

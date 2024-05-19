@@ -28,3 +28,5 @@ app.use((err, req, res, next) => {
 app.listen(8558, () => {
   console.log('Server started on port 8558');
 });
+
+export default app;

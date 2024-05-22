@@ -20,7 +20,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    avatarURL: String,
+    avatarURL: {
+      type: String,
+      default: null,
+    }
   },
   {
     versionKey: false,

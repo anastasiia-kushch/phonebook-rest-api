@@ -38,7 +38,7 @@ export const login = async (req, res, next) => {
     });
 
     const result = await User.findByIdAndUpdate(existedUser._id, { token });
-    console.log(result);
+    
     const { email, subscription } = result
     res.status(200).json({ token, email, subscription });
   } catch (error) {

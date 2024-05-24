@@ -3,6 +3,7 @@ import HttpError from '../helpers/HttpError.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import gravatar from 'gravatar';
+import { sendEmail } from '../helpers/sendEmail.js';
 
 export const register = async (req, res, next) => {
   try {
@@ -11,9 +12,17 @@ export const register = async (req, res, next) => {
 
     const passwordHash = await bcrypt.hash(req.body.password, 10);
 
-    const avatar = gravatar.url(req.body.email)
+    const avatar = gravatar.url(req.body.email);
 
-    await User.create({ email: req.body.email, password: passwordHash, avatarURL: avatar });
+    await User.create({
+      email: req.body.email,
+      password: passwordHash,
+      avatarURL: avatar,
+    });
+
+    sendEmail.sendMail({
+      to: req.body.email
+    })
 
     res.status(201).json(req.body);
   } catch (error) {
@@ -38,8 +47,8 @@ export const login = async (req, res, next) => {
     });
 
     const result = await User.findByIdAndUpdate(existedUser._id, { token });
-    
-    const { email, subscription } = result
+
+    const { email, subscription } = result;
     res.status(200).json({ token, email, subscription });
   } catch (error) {
     next(error);

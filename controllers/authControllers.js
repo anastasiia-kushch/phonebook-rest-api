@@ -21,7 +21,9 @@ export const register = async (req, res, next) => {
     });
 
     sendEmail.sendMail({
-      to: req.body.email
+      to: req.body.email,
+      subject: "Verify your email",
+      html: 
     })
 
     res.status(201).json(req.body);

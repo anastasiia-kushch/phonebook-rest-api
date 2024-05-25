@@ -4,6 +4,10 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import gravatar from 'gravatar';
 import { sendEmail } from '../helpers/sendEmail.js';
+import 'dotenv/config';
+import { v4 as uuidv4 } from 'uuid';
+
+const { BASE_URL } = process.env;
 
 export const register = async (req, res, next) => {
   try {
@@ -14,19 +18,30 @@ export const register = async (req, res, next) => {
 
     const avatar = gravatar.url(req.body.email);
 
-    await User.create({
+    const verificationToken = uuidv4();
+
+    const newUser = await User.create({
       email: req.body.email,
       password: passwordHash,
       avatarURL: avatar,
+      verificationToken,
     });
 
-    sendEmail.sendMail({
+    const verifyEmail = {
       to: req.body.email,
-      subject: "Verify your email",
-      html: 
-    })
+      subject: 'Verify your email',
+      html: `<a target="_blank" href="${BASE_URL}/users/verify/${verificationToken}"> Click here to verify email</a>`,
+      text: `Click here to verify email http://localhost:8558/api/users/verify/${verificationToken}`,
+    };
 
-    res.status(201).json(req.body);
+    await sendEmail(verifyEmail);
+
+    res.status(201).json({
+      email: req.body.email,
+      subscription: newUser.subscription,
+      avatarURL: avatar,
+      message: 'User registered successfully!',
+    });
   } catch (error) {
     next(error);
   }
@@ -43,6 +58,13 @@ export const login = async (req, res, next) => {
     );
 
     if (!isMatch) throw HttpError(401, 'Email or password is wrong');
+
+    if (!existedUser.verify) {
+      throw HttpError(
+        401,
+        'User not verified. Please check your email to verify your account.'
+      );
+    }
 
     const token = jwt.sign({ id: existedUser._id }, process.env.JWT_SECRET, {
       expiresIn: 3600,
@@ -92,4 +114,19 @@ export const updateSubscription = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+export const verifyEmail = async (req, res, next) => {
+  const { verificationToken } = req.params;
+  // Status: 200 OK
+  // ResponseBody: {
+  //   message: 'Verification successful',
+  // }
+
+  // Status: 404 Not Found
+  // ResponseBody: {
+  //   message: 'User not found'
+  // }
+
+  res.send('');
 };

@@ -70,7 +70,10 @@ export const login = async (req, res, next) => {
       expiresIn: 3600,
     });
 
-    const result = await User.findByIdAndUpdate(existedUser._id, { token });
+    const result = await User.findOneAndUpdate(
+      { _id: existedUser._id },
+      { token }
+    );
 
     const { email, subscription } = result;
     res.status(200).json({ token, email, subscription });
@@ -81,7 +84,7 @@ export const login = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    await User.findByIdAndUpdate(req.user.id, { token: null });
+    await User.findOneAndUpdate({ _id: req.user.id }, { token: null });
 
     res.status(204).end();
   } catch (error) {
@@ -102,8 +105,8 @@ export const updateSubscription = async (req, res, next) => {
     const { subscription } = req.query;
     const { id } = req.user;
 
-    const result = await User.findByIdAndUpdate(
-      id,
+    const result = await User.findOneAndUpdate(
+      { _id: id },
       { subscription },
       {
         new: true,
@@ -117,16 +120,45 @@ export const updateSubscription = async (req, res, next) => {
 };
 
 export const verifyEmail = async (req, res, next) => {
-  const { verificationToken } = req.params;
-  // Status: 200 OK
-  // ResponseBody: {
-  //   message: 'Verification successful',
-  // }
+  try {
+    const { verificationToken } = req.params;
+    const existedUser = await User.findOne({
+      verificationToken,
+    });
 
-  // Status: 404 Not Found
-  // ResponseBody: {
-  //   message: 'User not found'
-  // }
+    if (!existedUser) throw HttpError(404, 'User not found');
 
-  res.send('');
+    await User.findOneAndUpdate(
+      { _id: existedUser._id },
+      { verify: true, verificationToken: null }
+    );
+
+    res.status(200).json({ message: 'Verification successful' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerifyEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (user.verify)
+      throw HttpError(400, 'Verification has already been passed');
+
+    console.log(user);
+    const verifyEmail = {
+      to: email,
+      subject: 'Verify your email',
+      html: `<a target="_blank" href="${BASE_URL}/users/verify/${user.verificationToken}"> Click here to verify email</a>`,
+      text: `Click here to verify email http://localhost:8558/api/users/verify/${user.verificationToken}`,
+    };
+
+    await sendEmail(verifyEmail);
+
+    res.status(200).json({ message: 'Verification email sent' });
+  } catch (error) {
+    next(error);
+  }
 };

@@ -1,4 +1,4 @@
-# GoIT Node.js REST API Project
+# Node.js REST API Project
 
 This project is a Node.js REST API developed as part of the GoIT course. It provides a structured and scalable backend service with essential features for user authentication, contact management, and more.
 
